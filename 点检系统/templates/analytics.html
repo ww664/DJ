@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}数据分析{% endblock %}
+{% block content %}
+<h2>设备健康指数: {{ health_index }}%</h2>
+<canvas id="box-plot"></canvas>
+<script>
+  new Chart(document.getElementById('box-plot').getContext('2d'), {
+    type: 'bar',  // 简化为柱状图，Chart.js 默认不支持箱线图需额外插件
+    data: {
+      labels: ['设备健康指数'],
+      datasets: [{
+        label: '健康指数 (%)',
+        data: [{{ health_index }}],
+        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+      }]
+    },
+    options: { scales: { y: { beginAtZero: true, max: 100 } } }
+  });
+</script>
+{% endblock %}

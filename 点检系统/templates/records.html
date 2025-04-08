@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}点检记录{% endblock %}
+
+{% block content %}
+  <h1>点检记录</h1>
+  <form method="post" class="mb-3">
+    <div class="row">
+      <div class="col-md-4">
+        <label for="unit_name">单元名称</label>
+        <select name="unit_name" id="unit_name" class="form-control">
+          <option value="">所有单元</option>
+          {% for unit in units %}
+            <option value="{{ unit }}" {% if unit == selected_unit %}selected{% endif %}>{{ unit }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="result">结果</label>
+        <select name="result" id="result" class="form-control">
+          <option value="">所有结果</option>
+          <option value="合格" {% if selected_result == '合格' %}selected{% endif %}>合格</option>
+          <option value="异常" {% if selected_result == '异常' %}selected{% endif %}>异常</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-primary mt-4">筛选</button>
+      </div>
+    </div>
+  </form>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>单元名称</th>
+        <th>设备名称</th>
+        <th>点检部位</th>
+        <th>点检内容</th>
+        <th>判断标准</th>
+        <th>结果</th>
+        <th>备注</th>
+        <th>检查人</th>
+        <th>创建时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+        <tr>
+          <td>{{ record.unit_name }}</td>
+          <td>{{ record.device_name }}</td>
+          <td>{{ record.part }}</td>
+          <td>{{ record.content }}</td>
+          <td>{{ record.standard }}</td>
+          <td>{{ record.result }}</td>
+          <td>{{ record.note }}</td>
+          <td>{{ record.inspected_by }}</td>
+          <td>{{ record.created_at }}</td>
+          <td>
+            <form method="post" style="display:inline;">
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="record_id" value="{{ record.id }}">
+              <button type="submit" class="btn btn-danger btn-sm">删除</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div>
+    <a href="{{ url_for('export_excel', unit_name=selected_unit, result=selected_result) }}" class="btn btn-success">导出筛选结果</a>
+    <form method="post" style="display:inline;">
+      <input type="hidden" name="action" value="delete_all">
+      <button type="submit" class="btn btn-danger">全部删除</button>
+    </form>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">返回</a>
+  </div>
+{% endblock %}

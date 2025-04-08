@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}仪表盘{% endblock %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1 class="mb-4 text-center">欢迎, {{ username }}</h1>
+    <div class="row mb-4 justify-content-center">
+      <div class="col-md-12 text-center">
+        {% for template in templates %}
+          <a href="{{ url_for('inspection', template_id=template.id) }}" class="btn btn-warning mr-2 mb-2">开始点检</a>
+        {% endfor %}
+        <a href="{{ url_for('export_excel') }}" class="btn btn-success mr-2 mb-2">导出 Excel 表格</a>
+        <a href="{{ url_for('records') }}" class="btn btn-info mr-2 mb-2">点检记录</a>
+        {% if session['role'] == 'admin' %}
+          <a href="{{ url_for('manage_users') }}" class="btn btn-primary mr-2 mb-2">管理用户</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn btn-danger mb-2">登出</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">点检完成率</h2>
+            <canvas id="completionChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">故障率</h2>
+            <canvas id="failureChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    var ctx1 = document.getElementById('completionChart').getContext('2d');
+    var completionChart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_data.labels|tojson }},
+        datasets: [{
+          label: '完成数量',
+          data: {{ chart_data.numbers|tojson }},
+          backgroundColor: 'rgba(40, 167, 69, 0.7)', // 更鲜艳的绿色
+          borderColor: 'rgba(40, 167, 69, 1)',
+          borderWidth: 2,
+          borderRadius: 5, // 圆角柱状图
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              font: { size: 14, family: 'Arial' }
+            }
+          },
+          title: {
+            display: true,
+            text: '点检完成率统计',
+            font: { size: 18, weight: 'bold', family: 'Arial' },
+            color: '#333'
+          }
+        },
+        scales: {
+          x: {
+            ticks: { font: { size: 12 }, color: '#555' },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { font: { size: 12 }, color: '#555' },
+            grid: { color: '#e9ecef' }
+          }
+        }
+      }
+    });
+
+    var ctx2 = document.getElementById('failureChart').getContext('2d');
+    var failureChart = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: {{ failure_chart_data.labels|tojson }},
+        datasets: [
+          {
+            label: '异常 (%)',
+            data: {{ failure_chart_data.failure|tojson }},
+            backgroundColor: 'rgba(220, 53, 69, 0.7)', // 更鲜艳的红色
+            borderColor: 'rgba(220, 53, 69, 1)',
+            borderWidth: 2,
+            borderRadius: 5,
+          },
+          {
+            label: '正常 (%)',
+            data: {{ failure_chart_data.normal|tojson }},
+            backgroundColor: 'rgba(40, 167, 69, 0.7)', // 更鲜艳的绿色
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 2,
+            borderRadius: 5,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              font: { size: 14, family: 'Arial' }
+            }
+          },
+          title: {
+            display: true,
+            text: '故障率统计',
+            font: { size: 18, weight: 'bold', family: 'Arial' },
+            color: '#333'
+          }
+        },
+        scales: {
+          x: {
+            ticks: { font: { size: 12 }, color: '#555' },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { font: { size: 12 }, color: '#555' },
+            grid: { color: '#e9ecef' }
+          }
+        }
+      }
+    });
+  </script>
+{% endblock %}

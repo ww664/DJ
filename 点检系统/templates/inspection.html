@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}点检 - {{ template.name }}{% endblock %}
+
+{% block content %}
+  <h1>{{ template.name }}</h1>
+  <form method="post">
+    <div class="accordion" id="inspectionAccordion">
+      {% for unit_item in unit_items %}
+        <div class="card">
+          <div class="card-header" id="heading_{{ loop.index }}">
+            <h3 class="mb-0">
+              <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse_{{ loop.index }}" aria-expanded="true" aria-controls="collapse_{{ loop.index }}">
+                {{ unit_item.unit.name }}
+              </button>
+            </h3>
+          </div>
+          <div id="collapse_{{ loop.index }}" class="collapse {% if loop.index == 1 %}show{% endif %}" aria-labelledby="heading_{{ loop.index }}" data-parent="#inspectionAccordion">
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>序号</th>
+                    <th>设备名称</th>
+                    <th>点检部位</th>
+                    <th>点检内容</th>
+                    <th>判断标准</th>
+                    <th>正常</th>
+                    <th>异常</th>
+                    <th>备注</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in unit_item['items'] %}
+                    <tr>
+                      <td>{{ item.sequence }}</td>
+                      <td>{{ item.device_name }}</td>
+                      <td>{{ item.part }}</td>
+                      <td>{{ item.content }}</td>
+                      <td>{{ item.standard }}</td>
+                      <td>
+                        <input type="checkbox" name="normal_{{ item.id }}" id="normal_{{ item.id }}">
+                      </td>
+                      <td>
+                        <input type="checkbox" name="abnormal_{{ item.id }}" id="abnormal_{{ item.id }}">
+                      </td>
+                      <td><textarea name="note_{{ item.id }}" class="form-control" rows="1"></textarea></td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">保存</button>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">返回</a>
+  </form>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+{% endblock %}

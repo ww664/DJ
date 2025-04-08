@@ -1,0 +1,6 @@
+body { background-color: #f8f9fa; }
+h2, h3 { margin: 20px 0; }
+.form-row { display: flex; gap: 10px; }
+body.work { background-color: #e0f7fa; }
+body.standby { background-color: #fff3e0; }
+body.charging { background-color: #e8f5e9; }
