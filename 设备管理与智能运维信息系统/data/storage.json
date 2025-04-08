@@ -1,0 +1,11 @@
+{
+    "base_info": {
+        "line_equip": [],
+        "material": [],
+        "inspection_route": [],
+        "position_id": [],
+        "inspection_standard": []
+    },
+    "check_task": [],
+    "repair_order": []
+}

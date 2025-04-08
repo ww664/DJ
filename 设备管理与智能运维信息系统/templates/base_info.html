@@ -1,0 +1,231 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>基准管理模块</h3>
+<!-- 二级导航标签页 -->
+<ul class="nav nav-tabs mb-3" id="subNav">
+    <li class="nav-item">
+        <a class="nav-link {% if section=='line_equip' %}active{% endif %}" href="{{ url_for('base_info', section='line_equip') }}">生产线编码和设备编码</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section=='material' %}active{% endif %}" href="{{ url_for('base_info', section='material') }}">物料代码管理页面</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section=='inspection_route' %}active{% endif %}" href="{{ url_for('base_info', section='inspection_route') }}">编制点检路线</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section=='position_id' %}active{% endif %}" href="{{ url_for('base_info', section='position_id') }}">编制ID位置编码</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section=='inspection_standard' %}active{% endif %}" href="{{ url_for('base_info', section='inspection_standard') }}">编写点检标准</a>
+    </li>
+</ul>
+
+<div>
+    {% if section == 'line_equip' %}
+    <h4>生产线编码和设备编码</h4>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">生产线编码</label>
+            <input type="text" class="form-control" name="line_code">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">设备编码</label>
+            <input type="text" class="form-control" name="device_code">
+        </div>
+        <button type="submit" class="btn btn-success">提交</button>
+    </form>
+    <hr>
+    <h5>已提交记录</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>#</th><th>生产线编码</th><th>设备编码</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+            {% for item in data.line_equip %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.line_code }}</td>
+                <td>{{ item.device_code }}</td>
+                <td><a href="{{ url_for('delete_base_info', section='line_equip', index=loop.index0) }}" class="btn btn-danger btn-sm">删除</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif section == 'material' %}
+    <h4>物料代码管理页面</h4>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">单元</label>
+            <input type="text" class="form-control" name="unit">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">备件</label>
+            <input type="text" class="form-control" name="spare">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">工器具</label>
+            <input type="text" class="form-control" name="tool">
+        </div>
+        <button type="submit" class="btn btn-success">提交</button>
+    </form>
+    <hr>
+    <h5>已提交记录</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>#</th><th>单元</th><th>备件</th><th>工器具</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+            {% for item in data.material %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.unit }}</td>
+                <td>{{ item.spare }}</td>
+                <td>{{ item.tool }}</td>
+                <td><a href="{{ url_for('delete_base_info', section='material', index=loop.index0) }}" class="btn btn-danger btn-sm">删除</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif section == 'inspection_route' %}
+    <h4>编制点检路线</h4>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">点检路线名称</label>
+            <input type="text" class="form-control" name="route_name" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">点检路线编码</label>
+            <input type="text" class="form-control" name="route_code" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">点检仪编码</label>
+            <input type="text" class="form-control" name="device_code" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">点检仪名称</label>
+            <input type="text" class="form-control" name="device_name" required>
+        </div>
+        <button type="submit" class="btn btn-success">提交</button>
+    </form>
+    <hr>
+    <h5>已提交记录</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>路线名称</th>
+                <th>路线编码</th>
+                <th>点检仪编码</th>
+                <th>点检仪名称</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data.inspection_route %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.route_name }}</td>
+                <td>{{ item.route_code }}</td>
+                <td>{{ item.device_code }}</td>
+                <td>{{ item.device_name }}</td>
+                <td><a href="{{ url_for('delete_base_info', section='inspection_route', index=loop.index0) }}" class="btn btn-danger btn-sm">删除</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif section == 'position_id' %}
+    <h4>编制ID位置编码</h4>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">ID位置编码</label>
+            <input type="text" class="form-control" name="position_id">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">ID位置</label>
+            <input type="text" class="form-control" name="position">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">位置类型</label>
+            <input type="text" class="form-control" name="position_type">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">ID位置分类</label>
+            <input type="text" class="form-control" name="position_category">
+        </div>
+        <button type="submit" class="btn btn-success">提交</button>
+    </form>
+    <hr>
+    <h5>已提交记录</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>#</th><th>ID位置编码</th><th>ID位置</th><th>位置类型</th><th>ID位置分类</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+            {% for item in data.position_id %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.position_id }}</td>
+                <td>{{ item.position }}</td>
+                <td>{{ item.position_type }}</td>
+                <td>{{ item.position_category }}</td>
+                <td><a href="{{ url_for('delete_base_info', section='position_id', index=loop.index0) }}" class="btn btn-danger btn-sm">删除</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif section == 'inspection_standard' %}
+    <h4>编写点检标准</h4>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">序号</label>
+            <input type="text" class="form-control" name="serial" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">设备名称</label>
+            <input type="text" class="form-control" name="device_name" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">点检部位</label>
+            <input type="text" class="form-control" name="check_part" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">点检内容</label>
+            <input type="text" class="form-control" name="check_content" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">判断标准</label>
+            <input type="text" class="form-control" name="standard" required>
+        </div>
+        <button type="submit" class="btn btn-success">提交</button>
+    </form>
+    <hr>
+    <h5>已提交记录</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>序号</th>
+                <th>设备名称</th>
+                <th>点检部位</th>
+                <th>点检内容</th>
+                <th>判断标准</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data.inspection_standard %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.serial }}</td>
+                <td>{{ item.device_name }}</td>
+                <td>{{ item.check_part }}</td>
+                <td>{{ item.check_content }}</td>
+                <td>{{ item.standard }}</td>
+                <td><a href="{{ url_for('delete_base_info', section='inspection_standard', index=loop.index0) }}" class="btn btn-danger btn-sm">删除</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

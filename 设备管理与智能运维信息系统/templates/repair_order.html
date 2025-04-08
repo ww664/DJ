@@ -1,0 +1,276 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>设备检维修模块</h3>
+
+<!-- 添加工单按钮 -->
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">添加工单</button>
+
+<!-- 添加工单弹出对话框 -->
+<div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('add_repair_order') }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addOrderModalLabel">添加工单</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 12项输入 -->
+          <div class="mb-3">
+            <label class="form-label">工单名称</label>
+            <input type="text" class="form-control" name="order_name" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">专业</label>
+            <input type="text" class="form-control" name="specialty" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">检修分类</label>
+            <input type="text" class="form-control" name="repair_category" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">任务类型</label>
+            <input type="text" class="form-control" name="task_type" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">工事分类</label>
+            <input type="text" class="form-control" name="project_category" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">验收级别</label>
+            <input type="text" class="form-control" name="acceptance_level" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">委托类型</label>
+            <input type="text" class="form-control" name="commission_type" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">是否影响生产</label>
+            <input type="text" class="form-control" name="affect_production" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">检修开始和结束时间</label>
+            <input type="text" class="form-control" name="repair_time" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">维修内容</label>
+            <textarea class="form-control" name="repair_content" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">备件</label>
+            <input type="text" class="form-control" name="spare" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">工器具</label>
+            <input type="text" class="form-control" name="tool" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">送审</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 批量操作按钮 -->
+<div class="mt-3">
+  <button class="btn btn-warning" id="batchReviewBtn">审核</button>
+  <button class="btn btn-info" id="batchImplementBtn">实施</button>
+  <button class="btn btn-success" id="batchAcceptBtn">验收</button>
+  <button class="btn btn-secondary" id="batchActualEntryBtn">实绩录入</button>
+</div>
+
+<!-- 订单列表 -->
+<h4 class="mt-4">已提交工单</h4>
+<form id="batchActionForm" method="POST">
+  <!-- 设置表格样式：固定布局、100%宽度，自动换行 -->
+  <table class="table table-bordered" style="table-layout: fixed; width: 100%; word-wrap: break-word; white-space: normal;">
+    <thead>
+      <tr>
+        <th style="width: 5%;"><input type="checkbox" id="selectAll"></th>
+        <th style="width: 5%;">#</th>
+        <th style="width: 15%;">工单名称</th>
+        <th style="width: 10%;">专业</th>
+        <th style="width: 10%;">检修分类</th>
+        <th style="width: 10%;">任务类型</th>
+        <th style="width: 10%;">工事分类</th>
+        <th style="width: 10%;">验收级别</th>
+        <th style="width: 10%;">委托类型</th>
+        <th style="width: 10%;">是否影响生产</th>
+        <th style="width: 10%;">检修时间</th>
+        <th style="width: 15%;">维修内容</th>
+        <th style="width: 10%;">备件</th>
+        <th style="width: 10%;">工器具</th>
+        <th style="width: 10%;">状态</th>
+        <th style="width: 15%;">操作</th>
+        <th style="width: 5%;">删除</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td><input type="checkbox" name="selected_orders" value="{{ loop.index0 }}"></td>
+        <td>{{ loop.index }}</td>
+        <td>{{ order.order_name }}</td>
+        <td>{{ order.specialty }}</td>
+        <td>{{ order.repair_category }}</td>
+        <td>{{ order.task_type }}</td>
+        <td>{{ order.project_category }}</td>
+        <td>{{ order.acceptance_level }}</td>
+        <td>{{ order.commission_type }}</td>
+        <td>{{ order.affect_production }}</td>
+        <td>{{ order.repair_time }}</td>
+        <td>{{ order.repair_content }}</td>
+        <td>{{ order.spare }}</td>
+        <td>{{ order.tool }}</td>
+        <td>{{ order.status if order.status else '待送审' }}</td>
+        <!-- 直接操作按钮：点击后直接调用路由更新状态 -->
+        <td>
+          <a href="{{ url_for('direct_update_repair_order', index=loop.index0, action='review') }}" class="btn btn-sm btn-warning">审核</a>
+          <a href="{{ url_for('direct_update_repair_order', index=loop.index0, action='implement') }}" class="btn btn-sm btn-info">实施</a>
+          <a href="{{ url_for('direct_update_repair_order', index=loop.index0, action='accept') }}" class="btn btn-sm btn-success">验收</a>
+          <a href="{{ url_for('direct_update_repair_order', index=loop.index0, action='actual') }}" class="btn btn-sm btn-secondary">实绩录入</a>
+        </td>
+        <td>
+          <a href="{{ url_for('delete_repair_order', index=loop.index0) }}" class="btn btn-sm btn-danger">删除</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
+
+<!-- 批量操作模态对话框 -->
+<div class="modal fade" id="batchActionModal" tabindex="-1" aria-labelledby="batchActionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" id="batchActionForm" action="{{ url_for('batch_update_repair_order_dialog') }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="batchActionModalLabel">批量操作确认</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 显示已选订单中第一条的12项内容 -->
+          <div class="mb-3">
+            <label class="form-label">工单名称</label>
+            <input type="text" class="form-control" name="order_name" id="batch_modal_order_name" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">专业</label>
+            <input type="text" class="form-control" name="specialty" id="batch_modal_specialty" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">检修分类</label>
+            <input type="text" class="form-control" name="repair_category" id="batch_modal_repair_category" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">任务类型</label>
+            <input type="text" class="form-control" name="task_type" id="batch_modal_task_type" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">工事分类</label>
+            <input type="text" class="form-control" name="project_category" id="batch_modal_project_category" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">验收级别</label>
+            <input type="text" class="form-control" name="acceptance_level" id="batch_modal_acceptance_level" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">委托类型</label>
+            <input type="text" class="form-control" name="commission_type" id="batch_modal_commission_type" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">是否影响生产</label>
+            <input type="text" class="form-control" name="affect_production" id="batch_modal_affect_production" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">检修开始和结束时间</label>
+            <input type="text" class="form-control" name="repair_time" id="batch_modal_repair_time" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">维修内容</label>
+            <textarea class="form-control" name="repair_content" id="batch_modal_repair_content" rows="3" readonly></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">备件</label>
+            <input type="text" class="form-control" name="spare" id="batch_modal_spare" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">工器具</label>
+            <input type="text" class="form-control" name="tool" id="batch_modal_tool" readonly>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" id="batchActionSubmitBtn"></button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+        </div>
+      </div>
+      <input type="hidden" name="order_indexes" id="orderIndexes">
+      <input type="hidden" name="action_type" id="batchActionType">
+    </form>
+  </div>
+</div>
+
+<script>
+// 将后端传入的 orders 数据转换为 JS 变量
+var ordersData = {{ orders|tojson|safe }};
+
+// 全选/取消全选
+document.getElementById('selectAll').addEventListener('change', function(){
+  var checkboxes = document.querySelectorAll('input[name="selected_orders"]');
+  checkboxes.forEach(function(checkbox) {
+    checkbox.checked = document.getElementById('selectAll').checked;
+  });
+});
+
+// 批量操作：点击批量按钮后弹出批量操作模态对话框，填充内容为已选订单中第一条的内容
+document.getElementById('batchReviewBtn').addEventListener('click', function(){
+  openBatchModal('review', '审核', '已审核');
+});
+document.getElementById('batchImplementBtn').addEventListener('click', function(){
+  openBatchModal('implement', '实施', '已实施');
+});
+document.getElementById('batchAcceptBtn').addEventListener('click', function(){
+  openBatchModal('accept', '验收', '已验收');
+});
+document.getElementById('batchActualEntryBtn').addEventListener('click', function(){
+  openBatchModal('actual', '实绩录入', '已实绩录入');
+});
+
+function openBatchModal(action, modalTitle, submitText) {
+  var selected = [];
+  var checkboxes = document.querySelectorAll('input[name="selected_orders"]:checked');
+  checkboxes.forEach(function(checkbox){
+    selected.push(parseInt(checkbox.value));
+  });
+  if(selected.length === 0){
+    alert('请至少选择一个工单');
+    return;
+  }
+  // 使用已选订单中的第一条数据填充模态对话框
+  var order = ordersData[selected[0]];
+  document.getElementById('batch_modal_order_name').value = order.order_name;
+  document.getElementById('batch_modal_specialty').value = order.specialty;
+  document.getElementById('batch_modal_repair_category').value = order.repair_category;
+  document.getElementById('batch_modal_task_type').value = order.task_type;
+  document.getElementById('batch_modal_project_category').value = order.project_category;
+  document.getElementById('batch_modal_acceptance_level').value = order.acceptance_level;
+  document.getElementById('batch_modal_commission_type').value = order.commission_type;
+  document.getElementById('batch_modal_affect_production').value = order.affect_production;
+  document.getElementById('batch_modal_repair_time').value = order.repair_time;
+  document.getElementById('batch_modal_repair_content').value = order.repair_content;
+  document.getElementById('batch_modal_spare').value = order.spare;
+  document.getElementById('batch_modal_tool').value = order.tool;
+
+  document.getElementById('orderIndexes').value = selected.join(',');
+  document.getElementById('batchActionType').value = action;
+  document.getElementById('batchActionModalLabel').innerText = modalTitle;
+  document.getElementById('batchActionSubmitBtn').innerText = submitText;
+
+  var batchModal = new bootstrap.Modal(document.getElementById('batchActionModal'));
+  batchModal.show();
+}
+</script>
+{% endblock %}

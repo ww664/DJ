@@ -1,0 +1,125 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>点检记录</h3>
+
+<!-- 点检记录表格 -->
+<form method="post" action="{{ url_for('check_record') }}">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th style="width: 8%">单元</th>
+                <th style="width: 6%">序号</th>
+                <th style="width: 14%">设备名称</th>
+                <th style="width: 14%">点检部位</th>
+                <th style="width: 14%">点检内容</th>
+                <th style="width: 14%">判断标准</th>
+                <th style="width: 10%">点检结果</th>
+                <th style="width: 14%">记录时间</th>
+                <th style="width: 6%">操作</th>
+            </tr>
+            <tr>
+                <th>
+                    <select name="unit" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.unit %}
+                        <option value="{{ value }}" {% if filters.unit == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="seq" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.seq %}
+                        <option value="{{ value }}" {% if filters.seq == value|string %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="device_name" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.device_name %}
+                        <option value="{{ value }}" {% if filters.device_name == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="check_part" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.check_part %}
+                        <option value="{{ value }}" {% if filters.check_part == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="check_item" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.check_item %}
+                        <option value="{{ value }}" {% if filters.check_item == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="standard" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.standard %}
+                        <option value="{{ value }}" {% if filters.standard == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="check_result" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.check_result %}
+                        <option value="{{ value }}" {% if filters.check_result == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <select name="record_time" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">全部</option>
+                        {% for value in options.record_time %}
+                        <option value="{{ value }}" {% if filters.record_time == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th></th> <!-- 操作列无需筛选 -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.unit }}</td>
+                <td>{{ record.seq }}</td>
+                <td>{{ record.device_name }}</td>
+                <td>{{ record.check_part }}</td>
+                <td>{{ record.check_item }}</td>
+                <td>{{ record.standard }}</td>
+                <td>{{ record.check_result }}</td>
+                <td>{{ record.record_time }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('delete_record', record_id=record.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">删除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+
+<!-- 删除所有记录按钮 -->
+<form method="post" action="{{ url_for('delete_all_records') }}" class="mt-3">
+    <button type="submit" class="btn btn-danger">删除所有记录</button>
+</form>
+
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+    .form-control-sm {
+        padding: 0.1rem 0.25rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

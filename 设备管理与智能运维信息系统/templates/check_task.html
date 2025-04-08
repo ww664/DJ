@@ -1,0 +1,269 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>现场点检实操</h3>
+
+<!-- 添加点检项表单 -->
+<form method="post" action="{{ url_for('add_item') }}" class="mb-3">
+    <div class="row mb-3">
+        <div class="col">
+            <label>单元</label>
+            <input type="text" name="unit" class="form-control" required>
+        </div>
+        <div class="col">
+            <label>序号</label>
+            <input type="number" name="seq" class="form-control" required>
+        </div>
+        <div class="col">
+            <label>设备名称</label>
+            <input type="text" name="device_name" class="form-control" required>
+        </div>
+        <div class="col">
+            <label>点检部位</label>
+            <input type="text" name="check_part" class="form-control" required>
+        </div>
+        <div class="col">
+            <label>点检内容</label>
+            <input type="text" name="check_item" class="form-control" required>
+        </div>
+        <div class="col">
+            <label>判断标准</label>
+            <input type="text" name="standard" class="form-control" required>
+        </div>
+        <div class="col d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">添加点检项</button>
+        </div>
+    </div>
+</form>
+
+<!-- 点检项表格 -->
+{% if units %}
+    {% for unit, items in units.items() %}
+    <div class="unit-section mb-4">
+        <div class="d-flex align-items-center mb-2">
+            <h4 class="mb-0">{{ unit }}</h4>
+            <button class="toggle-unit btn btn-link p-0 ms-2" data-unit="{{ unit }}">
+                {% if unit in expanded_units %}> {% else %}<{% endif %}
+            </button>
+        </div>
+        <div class="unit-content" id="content-{{ unit|replace(' ', '_') }}"
+             style="display: {% if unit in expanded_units %}block{% else %}none{% endif %};">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col" class="resizable" data-col="col-seq">序号<span class="resize-handle"></span></th>
+                        <th scope="col" class="resizable" data-col="col-device-name">设备名称<span class="resize-handle"></span></th>
+                        <th scope="col" class="resizable" data-col="col-check-part">点检部位<span class="resize-handle"></span></th>
+                        <th scope="col" class="resizable" data-col="col-check-item">点检内容<span class="resize-handle"></span></th>
+                        <th scope="col" class="resizable" data-col="col-standard">判断标准<span class="resize-handle"></span></th>
+                        <th scope="col" class="resizable" data-col="col-check-result">点检结果<span class="resize-handle"></span></th>
+                        <th scope="col" class="resizable" data-col="col-action">操作<span class="resize-handle"></span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="col-seq">{{ item.seq|default('N/A') }}</td>
+                        <td class="col-device-name">{{ item.device_name|default('N/A') }}</td>
+                        <td class="col-check-part">{{ item.check_part|default('N/A') }}</td>
+                        <td class="col-check-item">{{ item.check_item|default('N/A') }}</td>
+                        <td class="col-standard">{{ item.standard|default('N/A') }}</td>
+                        <td class="col-check-result">
+                            <form class="d-flex align-items-center save-result-form" data-item-id="{{ item.id|default('') }}">
+                                <input type="hidden" name="item_id" value="{{ item.id|default('') }}">
+                                <input type="text" name="check_result" value=""
+                                       class="form-control me-2" style="width: 100%;" placeholder="输入点检结果">
+                                <button type="submit" class="btn btn-success btn-sm">保存</button>
+                            </form>
+                        </td>
+                        <td class="col-action">
+                            <a href="{{ url_for('delete_item', item_id=item.id|default('')) }}" class="btn btn-danger btn-sm">删除</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>暂无点检数据</p>
+{% endif %}
+
+<!-- JavaScript 处理折叠、AJAX 提交和列宽调整 -->
+<script>
+    // 处理折叠逻辑并清除文本框内容
+    document.querySelectorAll('.toggle-unit').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const unit = this.getAttribute('data-unit');
+            const content = document.getElementById('content-' + unit.replace(/ /g, '_'));
+            if (!content) {
+                console.error('Content element not found for unit:', unit);
+                return;
+            }
+            const isCurrentlyExpanded = content.style.display === 'block';
+
+            if (!isCurrentlyExpanded) {
+                content.querySelectorAll('input[name="check_result"]').forEach(input => {
+                    input.value = '';
+                });
+            }
+
+            fetch('/toggle-unit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'unit=' + encodeURIComponent(unit)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.is_expanded) {
+                        content.style.display = 'block';
+                        this.innerHTML = '>';
+                    } else {
+                        content.style.display = 'none';
+                        this.innerHTML = '<';
+                    }
+                } else {
+                    console.error('Toggle failed:', data.message);
+                }
+            })
+            .catch(error => console.error('Error toggling unit:', error));
+        });
+    });
+
+    // 页面加载时清除所有文本框内容
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[name="check_result"]').forEach(input => {
+            input.value = '';
+        });
+
+        // 处理列宽拖动调整
+        const headers = document.querySelectorAll('.resizable');
+        headers.forEach(header => {
+            const resizeHandle = header.querySelector('.resize-handle');
+            resizeHandle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                const th = this.parentElement;
+                const colClass = th.getAttribute('data-col');
+                const startX = e.pageX;
+                const startWidth = th.offsetWidth;
+
+                function onMouseMove(e) {
+                    const newWidth = startWidth + (e.pageX - startX);
+                    if (newWidth > 50) { // 设置最小宽度为 50px
+                        th.style.width = newWidth + 'px';
+                        document.querySelectorAll(`.${colClass}`).forEach(cell => {
+                            cell.style.width = newWidth + 'px';
+                        });
+                    }
+                }
+
+                function onMouseUp() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    });
+
+    // 处理保存表单的 AJAX 提交，添加空值验证
+    document.querySelectorAll('.save-result-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const itemId = this.getAttribute('data-item-id');
+            const input = this.querySelector('input[name="check_result"]');
+            const checkResult = input.value.trim();
+
+            if (!checkResult) {
+                input.classList.add('border-danger');
+                setTimeout(() => input.classList.remove('border-danger'), 2000);
+                console.log('点检结果为空，无法提交，item_id:', itemId);
+                return;
+            }
+
+            fetch('{{ url_for("check_task") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(data => {
+                console.log('保存成功，item_id:', itemId);
+                input.classList.add('border-success');
+                setTimeout(() => input.classList.remove('border-success'), 2000);
+            })
+            .catch(error => {
+                console.error('保存失败:', error);
+                input.classList.add('border-danger');
+                setTimeout(() => input.classList.remove('border-danger'), 2000);
+            });
+        });
+    });
+</script>
+
+<style>
+    .table {
+        width: 100%;
+        table-layout: fixed; /* 固定布局，确保初始宽度生效 */
+    }
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .thead-dark {
+        background-color: #343a40;
+        color: white;
+    }
+    .unit-section {
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .border-success {
+        border-color: #28a745 !important;
+    }
+    .border-danger {
+        border-color: #dc3545 !important;
+    }
+    /* 初始列宽 */
+    .col-seq { width: 8%; }
+    .col-device-name { width: 15%; }
+    .col-check-part { width: 15%; }
+    .col-check-item { width: 15%; }
+    .col-standard { width: 25%; }
+    .col-check-result { width: 15%; }
+    .col-action { width: 7%; }
+    /* 可调整列样式 */
+    .resizable {
+        position: relative;
+    }
+    .resize-handle {
+        position: absolute;
+        top: 0;
+        right: -5px;
+        width: 10px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 10;
+    }
+    .resize-handle:hover {
+        background: rgba(0, 0, 0, 0.2); /* 鼠标悬停时显示拖动区域 */
+    }
+</style>
+{% endblock %}

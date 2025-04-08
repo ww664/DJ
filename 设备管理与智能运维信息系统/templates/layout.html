@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设备智能运维平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .container-fluid {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            flex: 0 0 25%; /* 初始宽度 25% */
+            background-color: #f8f9fa;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        #divider {
+            width: 5px;
+            background-color: #ccc;
+            cursor: ew-resize; /* 水平拖动光标 */
+            flex: 0 0 5px;
+        }
+        #content {
+            flex: 1; /* 占用剩余空间 */
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <!-- 左侧导航（主菜单） -->
+    <div id="sidebar">
+        <div class="d-flex align-items-center mb-4">
+            <h4 class="mb-0">主菜单</h4>
+            <button id="toggleSidebar" class="btn btn-link p-0 ms-2">></button>
+        </div>
+        <div class="nav flex-column nav-pills" id="mainNav">
+            <a class="nav-link {% if request.path.startswith('/base-info') %}active{% endif %}" href="{{ url_for('base_info') }}">基准管理模块</a>
+            <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% if request.path.startswith('/check-task') or request.path.startswith('/check-record') %}active{% endif %}" href="#" id="checkDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    现场点检实操
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="checkDropdown">
+                    <li><a class="dropdown-item" href="{{ url_for('check_task') }}">现场点检实操</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('check_record') }}">点检记录</a></li>
+                </ul>
+            </div>
+            <a class="nav-link {% if request.path.startswith('/repair-order') %}active{% endif %}" href="{{ url_for('repair_order') }}">设备检维修</a>
+        </div>
+    </div>
+    <!-- 分隔线 -->
+    <div id="divider"></div>
+    <!-- 右侧内容区域（子菜单） -->
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+<script>
+    // 折叠/展开菜单
+    document.getElementById('toggleSidebar').addEventListener('click', function() {
+        var mainNav = document.getElementById('mainNav');
+        if (mainNav.style.display === 'none') {
+            mainNav.style.display = 'block';
+            this.innerHTML = '>';
+        } else {
+            mainNav.style.display = 'none';
+            this.innerHTML = '<';
+        }
+    });
+
+    // 拖动分隔线调整宽度
+    const divider = document.getElementById('divider');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+    let isDragging = false;
+
+    // 页面加载时恢复保存的宽度
+    window.addEventListener('load', function() {
+        const savedWidth = localStorage.getItem('sidebarWidth');
+        if (savedWidth) {
+            sidebar.style.flex = `0 0 ${savedWidth}`;
+        }
+    });
+
+    divider.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        document.body.style.cursor = 'ew-resize';
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+
+        const container = document.querySelector('.container-fluid');
+        const containerWidth = container.offsetWidth;
+        const newSidebarWidth = e.clientX;
+
+        // 设置最小和最大宽度限制
+        const minWidth = 100; // 最小宽度 100px
+        const maxWidth = containerWidth - 100; // 最大宽度为容器宽度减去 100px
+
+        if (newSidebarWidth >= minWidth && newSidebarWidth <= maxWidth) {
+            const sidebarWidthPercent = (newSidebarWidth / containerWidth) * 100;
+            const newWidth = `${sidebarWidthPercent}%`;
+            sidebar.style.flex = `0 0 ${newWidth}`;
+            content.style.flex = `1`; // 右侧占用剩余空间
+
+            // 保存宽度到 localStorage
+            localStorage.setItem('sidebarWidth', newWidth);
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        document.body.style.cursor = 'default';
+    });
+</script>
+</body>
+</html>
